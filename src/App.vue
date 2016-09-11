@@ -3,7 +3,6 @@
     <form>
       <input type="file" class="choose-photo" @change="select" v-model="photo">
     </form>
-    <img :src="photoUrltest" alt="">
     <img :src="photoUrl" alt="">
   </div>
 </template>
@@ -14,62 +13,83 @@
   export default {
     data () {
       return {
-        photoUrltest: null,
         photoUrl: null,
-        photo: null
+        photo: null,
+        ratio: 1
       }
     },
     methods: {
       select (e) {
         var file = e.target.files[0]
         var Orientation = null
+        var reader = new window.FileReader()
         ExifJs.EXIF.getData(file, function () {
           ExifJs.EXIF.getAllTags(this)
           Orientation = ExifJs.EXIF.getTag(this, 'Orientation')
+          reader.readAsDataURL(file)
         })
         // console.log(this.photo)
-        var reader = new window.FileReader()
         reader.onload = (e) => {
           // this.photoUrl = reader.result
-          this.photoUrltest = reader.result
+          // this.photoUrltest = reader.result
           var image = new window.Image()
-          // image.src = reader.result
-          image.src = this.photoUrltest
+          image.src = reader.result
+          // image.src = this.photoUrltest
           image.onload = () => {
+            var angle = 0
+            this.ratio = image.width / image.height
+            image.width = (window.innerWidth - image.width) > 0 ? window.innerWidth : image.width
+            image.height = image.width / this.ratio
             if (navigator.userAgent.match(/iphone/i)) {
-              // if(Orientation != '' && Orientation != 1){
-              //   switch(Orientation){
-              //     case 6:// 需要顺时针（向左）90度旋转
-              //       rotateImg(this,'left',canvas)
-              //       break;
-              //     case 8:// 需要逆时针（向右）90度旋转
-              //       rotateImg(this,'right',canvas)
-              //       break;
-              //     case 3:// 需要180度旋转
-              //       rotateImg(this,'right',canvas)// 转两次
-              //       rotateImg(this,'right',canvas)
-              //       break;
-              //   }
-              // }
+              if (Orientation !== '' && Orientation !== 1) {
+                switch (Orientation) {
+                  case 6:// 需要顺时针（向左）90度旋转
+                    // rotateImg(this,'left',canvas)
+                    // window.alert('顺时针 90')
+                    angle = 90
+                    break
+                  case 8:// 需要逆时针（向右）90度旋转
+                    // rotateImg(this,'right',canvas)
+                    window.alert('逆时针 90')
+                    angle = -90
+                    break
+                  case 3:// 需要180度旋转
+                    // rotateImg(this,'right',canvas)// 转两次
+                    // rotateImg(this,'right',canvas)
+                    // window.alert('180')
+                    angle = 180
+                    break
+                }
+              }
             }
-            image.width = (window.innerWidth - image.width) > 0 ? image.width : window.innerWidth
-            // image.height =
-            console.log(image.width, image.height)
-            this.draw(image)
+            this.draw(image, angle)
           }
         }
-        reader.readAsDataURL(file)
       },
-      draw (image) {
+      draw (image, angle) {
         var canvas = document.createElement('canvas')
-        // var canvas = document.querySelector('#canvas')
         canvas.width = window.innerWidth
-        canvas.height = (window.innerWidth * image.height) / image.width
-        console.log(canvas.width, canvas.height)
-        console.log(image.width, image.height)
+        canvas.height = canvas.width / this.ratio
+        var drawW = canvas.width
+        var drawH = canvas.height
         var ctx = canvas.getContext('2d')
-        // ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, window.innerWidth, window.innerWidth * (image.height / image.width))
-        ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+        if (angle === 90) {
+          canvas.height = canvas.width * this.ratio
+          drawW = canvas.height
+          drawH = canvas.width
+          ctx.translate(drawH, 0)
+          ctx.rotate(angle * Math.PI / 180)
+        } else if (angle === -90) {
+          canvas.height = canvas.width * this.ratio
+          drawW = canvas.height
+          drawH = canvas.width
+          ctx.translate(0, drawW)
+          ctx.rotate(angle * Math.PI / 180)
+        } else if (angle === 180) {
+          ctx.translate(drawW, drawH)
+          ctx.rotate(Math.PI)
+        }
+        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, drawW, drawH)
         this.photoUrl = canvas.toDataURL('image/png')
         // console.log(123)
         // var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
