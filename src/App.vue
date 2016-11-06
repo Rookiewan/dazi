@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <button id="btnSub">submit</button>
     <form>
       <input type="file" class="choose-photo" @change="select" v-model="photo">
     </form>
@@ -96,6 +97,17 @@
         // this.photoUrl = imageData
         // console.log(imageData)
       }
+    },
+    ready () {
+      var btn = document.querySelector('#btnSub')
+      btn.onmousedown = function () {
+        console.log('submit')
+      }
+      // function activateEvent(btn) {
+      //   var eventObj = document.createEvent('MouseEvents')
+      //   eventObj.initEvent('mousedown', true, false)
+      //   btn.dispatchEvent(eventObj)
+      // }
     }
   }
 </script>
