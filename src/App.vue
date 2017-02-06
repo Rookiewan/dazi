@@ -91,6 +91,12 @@
           ctx.rotate(Math.PI)
         }
         ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, drawW, drawH)
+        // add text
+        ctx.save()
+        ctx.font = '20px'
+        ctx.fillStyle = 'lightblue'
+        ctx.fillText('Rookie_wan', 250, 50)
+        ctx.restore()
         this.photoUrl = canvas.toDataURL('image/png')
         // console.log(123)
         // var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
